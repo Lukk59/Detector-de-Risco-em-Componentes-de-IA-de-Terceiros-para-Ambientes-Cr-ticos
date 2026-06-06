@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block subtitle %}
+<p class="subtitle">Resultado: {{ result.component_name }} {{ result.component_version }}</p>
+{% endblock %}
+
+{% block content %}
+<section class="screen-head">
+    <h2>Tela 3 — Resultado da analise</h2>
+    <span class="screen-meta">(RF12-RF16, RNF04, RNF12)</span>
+</section>
+
+<nav class="timeline" aria-label="Etapas do fluxo">
+    <div class="timeline-line"></div>
+    <div class="timeline-step done">
+        <div class="timeline-circle">1</div>
+        <span>Cadastro</span>
+    </div>
+    <div class="timeline-step done">
+        <div class="timeline-circle">2</div>
+        <span>Analise</span>
+    </div>
+    <div class="timeline-step active current dark">
+        <div class="timeline-circle">3</div>
+        <span>Resultado</span>
+    </div>
+</nav>
+
+<section class="result-hero">
+    <div class="score-side">
+        <div class="score-main">{{ result.score }}</div>
+        <div class="score-sub">pontuacao</div>
+    </div>
+
+    <div class="hero-divider"></div>
+
+    <div class="hero-content">
+        <div class="risk-badge risk-{{ result.risk_level.value|lower|replace('é', 'e') }}">● Risco {{ result.risk_level.value|lower }}</div>
+        <div class="hero-title">Recomendacao: {{ result.recommendation.value }}</div>
+        <div class="hero-subtitle">{{ result.summary_line }}</div>
+    </div>
+</section>
+
+<section class="detail-section">
+    <h3>DETALHAMENTO POR CRITERIO</h3>
+
+    <div class="criteria-bars">
+        {% for item in result.criteria_scores %}
+            {% set tone = 'warn' if item.score <= 6 else 'good' %}
+            <div class="criterion-row">
+                <div class="criterion-label">{{ item.label }}</div>
+                <div class="bar-group">
+                    <div class="bar-track">
+                        <div class="bar-fill {{ tone }}" style="width: {{ item.score * 10 }}%"></div>
+                    </div>
+                    <div class="bar-score {{ tone }}">{{ item.score }} / 10</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="detail-section">
+    <h3>JUSTIFICATIVA (RF13)</h3>
+    <div class="justification-box">{{ result.justification }}</div>
+</section>
+
+<div class="button-row spaced wider-gap">
+    <a class="btn btn-light" href="/">&lt;- Reanalisar (RF16)</a>
+    <a class="btn btn-light" href="/resultado/{{ result.id }}/export">Exportar JSON</a>
+    <a class="btn btn-dark" href="/">+ Nova analise</a>
+</div>
+{% endblock %}

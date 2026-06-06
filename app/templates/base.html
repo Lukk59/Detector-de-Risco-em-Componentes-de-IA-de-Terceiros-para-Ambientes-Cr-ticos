@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or 'Detector de Risco · IA de Terceiros' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+</head>
+<body>
+    <main class="app-shell">
+        <section class="app-frame">
+            <header class="topbar">
+                <div class="brand-block">
+                    <h1>Detector de Risco · IA de Terceiros</h1>
+                    {% block subtitle %}{% endblock %}
+                </div>
+
+                <!-- Ícone simples para manter o visual da referência -->
+                <div class="menu-box" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                </div>
+            </header>
+
+            <section class="screen-body">
+                {% block content %}{% endblock %}
+            </section>
+        </section>
+    </main>
+
+    <script>
+        // Traduz o estado real do checkbox para o quadrinho customizado.
+        function syncCustomChecks() {
+            const customChecks = document.querySelectorAll('.custom-check');
+
+            customChecks.forEach((label) => {
+                const input = label.querySelector('input[type="checkbox"]');
+                const badge = label.querySelector('.check-badge, .fake-box');
+
+                if (!input || !badge) {
+                    return;
+                }
+
+                if (input.checked) {
+                    badge.textContent = 'v';
+                    badge.classList.add('checked');
+                } else {
+                    badge.textContent = '';
+                    badge.classList.remove('checked');
+                }
+            });
+        }
+
+        // Limpa o formulário inteiro e devolve a tela ao estado inicial.
+        function clearComponentForm() {
+            const form = document.getElementById('component-form');
+            if (!form) {
+                return;
+            }
+
+            form.reset();
+
+            form.querySelectorAll('input[type="text"], input[type="url"], input[type="date"]').forEach((input) => {
+                input.value = '';
+            });
+
+            form.querySelectorAll('select').forEach((select) => {
+                select.selectedIndex = 0;
+            });
+
+            syncCustomChecks();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncCustomChecks();
+
+            document.querySelectorAll('.custom-check input[type="checkbox"]').forEach((input) => {
+                input.addEventListener('change', syncCustomChecks);
+            });
+        });
+    </script>
+</body>
+</html>

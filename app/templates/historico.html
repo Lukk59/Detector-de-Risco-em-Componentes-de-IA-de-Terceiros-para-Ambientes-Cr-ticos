@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block subtitle %}
+<p class="subtitle">Historico</p>
+{% endblock %}
+
+{% block content %}
+<section class="screen-head history-title-row">
+    <div>
+        <h2>Tela 4 — Historico de analises</h2>
+        <span class="screen-meta">(RF17, RNF12)</span>
+    </div>
+    <span class="counter-pill">{{ count }} analises</span>
+</section>
+
+{% if items %}
+<div class="history-stack">
+    {% for item in items %}
+        <a class="history-row" href="/resultado/{{ item.id }}">
+            <div class="history-left">
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.type }}</span>
+            </div>
+            <div class="history-right">
+                <span class="history-date">{{ item.date_text }}</span>
+                {% set risk_class = item.risk|lower|replace('é', 'e') %}
+                <span class="history-tag {{ risk_class }}">{{ item.risk }} {{ item.score }}</span>
+            </div>
+        </a>
+    {% endfor %}
+</div>
+<p class="history-hint">Clique em uma analise para ver os detalhes completos.</p>
+{% else %}
+<p class="history-hint">Nenhuma analise foi registrada ainda.</p>
+{% endif %}
+{% endblock %}

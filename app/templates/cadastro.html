@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block subtitle %}
+<p class="subtitle">Novo componente</p>
+{% endblock %}
+
+{% block content %}
+<section class="screen-head">
+    <h2>Tela 1 — Cadastro do componente</h2>
+    <span class="screen-meta">(RF01, RF02, RF03, RF10)</span>
+</section>
+
+<nav class="timeline" aria-label="Etapas do fluxo">
+    <div class="timeline-line"></div>
+    <div class="timeline-step active current">
+        <div class="timeline-circle">1</div>
+        <span>Cadastro</span>
+    </div>
+    <div class="timeline-step">
+        <div class="timeline-circle">2</div>
+        <span>Analise</span>
+    </div>
+    <div class="timeline-step">
+        <div class="timeline-circle">3</div>
+        <span>Resultado</span>
+    </div>
+</nav>
+
+{% if error %}
+<div class="alert error">{{ error }}</div>
+{% endif %}
+
+{% if validation_details %}
+<div class="alert error">
+    <strong>Confira estes pontos:</strong>
+    <ul class="error-list">
+        {% for item in validation_details %}
+        <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<form id="component-form" method="post" action="/analisar">
+    <div class="form-grid two-cols">
+        <label class="field">
+            <span>NOME DO COMPONENTE</span>
+            <input type="text" name="name" maxlength="120" minlength="2" required placeholder="Ex.: transformers" value="{{ form_data.get('name', '') }}">
+        </label>
+
+        <label class="field">
+            <span>VERSAO</span>
+            <input type="text" name="version" maxlength="40" minlength="1" required placeholder="Ex.: 4.38.2" value="{{ form_data.get('version', '') }}">
+        </label>
+
+        <label class="field">
+            <span>TIPO DE COMPONENTE *</span>
+            <select name="component_type" required>
+                {% set current_type = form_data.get('component_type', '') %}
+                <option value="" {% if not current_type %}selected{% endif %} disabled>Selecione</option>
+                {% for item in component_types %}
+                    <option value="{{ item }}" {% if item == current_type %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="field">
+            <span>LICENCA</span>
+            <input type="text" name="license_name" maxlength="80" minlength="2" required placeholder="Ex.: Apache 2.0" value="{{ form_data.get('license_name', '') }}">
+        </label>
+
+        <label class="field">
+            <span>ORIGEM / REPOSITORIO</span>
+            <input type="url" name="source_url" required placeholder="https://exemplo.com" value="{{ form_data.get('source_url', '') }}">
+        </label>
+
+        <label class="field">
+            <span>DATA DA ULTIMA ATUALIZACAO</span>
+            <input type="date" name="last_update" required value="{{ form_data.get('last_update', '') }}" max="{{ today }}">
+        </label>
+    </div>
+
+    <section class="criteria-box">
+        <h3>CRITERIOS ADICIONAIS</h3>
+
+        <div class="checks-grid">
+            <label class="check-item custom-check has-badge">
+                <input type="checkbox" name="has_checksum" {% if form_data.get('has_checksum', False) %}checked{% endif %}>
+                <span class="check-badge"></span>
+                <span>Possui checksum / hash</span>
+            </label>
+
+            <label class="check-item custom-check">
+                <input type="checkbox" name="has_model_card" {% if form_data.get('has_model_card', False) %}checked{% endif %}>
+                <span class="fake-box"></span>
+                <span>Possui model card</span>
+            </label>
+
+            <label class="check-item custom-check has-badge">
+                <input type="checkbox" name="has_known_dependencies" {% if form_data.get('has_known_dependencies', False) %}checked{% endif %}>
+                <span class="check-badge"></span>
+                <span>Dependencias conhecidas</span>
+            </label>
+
+            <label class="check-item custom-check">
+                <input type="checkbox" name="critical_context" {% if form_data.get('critical_context', False) %}checked{% endif %}>
+                <span class="fake-box"></span>
+                <span>Contexto critico de uso</span>
+            </label>
+        </div>
+    </section>
+
+    <div class="warning-box">Aviso: Contexto critico marcado amplia o peso da pontuacao de risco.</div>
+
+    <div class="button-row left-align">
+        <button class="btn btn-light" type="button" onclick="clearComponentForm()">Limpar</button>
+        <button class="btn btn-dark" type="submit">Analisar componente -></button>
+    </div>
+</form>
+{% endblock %}

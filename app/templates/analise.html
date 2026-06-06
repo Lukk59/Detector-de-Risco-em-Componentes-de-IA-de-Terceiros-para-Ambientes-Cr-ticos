@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block subtitle %}
+{% if result %}
+<p class="subtitle">Verificação concluída para: {{ result.component_name }} {{ result.component_version }}</p>
+{% else %}
+<p class="subtitle">Verificação externa antes do score</p>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="screen-head">
+    <h2>Tela 2 — Verificação das informações fornecidas</h2>
+    <span class="screen-meta">(verificação externa antes do score)</span>
+</div>
+
+<div class="timeline">
+    <div class="timeline-line"></div>
+
+    <div class="timeline-step done">
+        <div class="timeline-circle">1</div>
+        <span>Cadastro</span>
+    </div>
+
+    <div class="timeline-step current">
+        <div class="timeline-circle">2</div>
+        <span>Análise</span>
+    </div>
+
+    <div class="timeline-step {% if can_continue %}done{% endif %}">
+        <div class="timeline-circle">3</div>
+        <span>Resultado</span>
+    </div>
+</div>
+
+<div class="analysis-center">
+    <div id="statusRing" class="status-ring loading-ring">
+        <span id="statusRingIcon">...</span>
+    </div>
+
+    <h3 id="analysisTitle">Validando informações com fonte externa...</h3>
+    <p class="verification-source">Fonte consultada: {{ verification.source }}</p>
+
+    <div id="verificationList" class="verification-list"></div>
+
+    <div class="sr-only verification-preload" aria-hidden="true">
+        {% for item in verification.checks %}
+        <span>{{ item.message }}</span>
+        {% endfor %}
+        {% for item in verification.errors %}
+        <span>{{ item }}</span>
+        {% endfor %}
+        {% for item in verification.warnings %}
+        <span>{{ item }}</span>
+        {% endfor %}
+    </div>
+
+    <div id="blockingBox" class="verification-summary error-box hidden-block">
+        <h4>Erros bloqueantes:</h4>
+        <ul id="blockingList"></ul>
+    </div>
+
+    <div id="warningBox" class="verification-summary warning-box-strong hidden-block">
+        <h4>Avisos fortes:</h4>
+        <ul id="warningList"></ul>
+    </div>
+
+    <div class="button-row left-align">
+        <a id="finalButton" class="btn btn-light hidden-block" href="/">Voltar e corrigir</a>
+        <a id="resultButton" class="btn btn-dark hidden-block" href="/resultado/{{ result_id }}">Ver resultado</a>
+    </div>
+</div>
+
+<script id="verification-data" type="application/json">{{ verification_json | tojson }}</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const verification = JSON.parse(document.getElementById("verification-data").textContent);
+    const verificationList = document.getElementById("verificationList");
+    const blockingBox = document.getElementById("blockingBox");
+    const blockingList = document.getElementById("blockingList");
+    const warningBox = document.getElementById("warningBox");
+    const warningList = document.getElementById("warningList");
+    const finalButton = document.getElementById("finalButton");
+    const resultButton = document.getElementById("resultButton");
+    const statusRing = document.getElementById("statusRing");
+    const statusRingIcon = document.getElementById("statusRingIcon");
+    const analysisTitle = document.getElementById("analysisTitle");
+
+    const checks = verification.checks || [];
+    const blockingErrors = verification.blocking_errors || verification.errors || [];
+    const warnings = verification.warnings || [];
+
+    let index = 0;
+    let foundCriticalError = false;
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = String(value);
+        return div.innerHTML;
+    }
+
+    function mapStatus(status) {
+        if (status === "error") return "error";
+        if (status === "warning") return "warning";
+        return "ok";
+    }
+
+    function badgeText(status) {
+        if (status === "error") return "erro";
+        if (status === "warning") return "aviso";
+        return "ok";
+    }
+
+    function buildCheckCard(check) {
+        const card = document.createElement("div");
+        card.className = `verification-card ${mapStatus(check.status)}`;
+
+        const badge = document.createElement("div");
+        badge.className = `verification-badge ${mapStatus(check.status)}`;
+        badge.textContent = badgeText(check.status);
+
+        const content = document.createElement("div");
+        content.className = "verification-content";
+
+        const field = document.createElement("div");
+        field.className = "verification-field";
+        field.textContent = check.field || "-";
+
+        const message = document.createElement("div");
+        message.className = "verification-message";
+        message.textContent = check.message || "";
+
+        content.appendChild(field);
+        content.appendChild(message);
+
+        const informedValue = check.informed || check.provided_value || null;
+        const officialValue = check.official || check.official_value || null;
+
+        if (informedValue || officialValue) {
+            const meta = document.createElement("div");
+            meta.className = "verification-meta";
+
+            if (informedValue) {
+                const informed = document.createElement("span");
+                informed.innerHTML = `<strong>Informado:</strong> ${escapeHtml(informedValue)}`;
+                meta.appendChild(informed);
+            }
+
+            if (officialValue) {
+                const official = document.createElement("span");
+                official.innerHTML = `<strong>Oficial:</strong> ${escapeHtml(officialValue)}`;
+                meta.appendChild(official);
+            }
+
+            content.appendChild(meta);
+        }
+
+        card.appendChild(badge);
+        card.appendChild(content);
+        return card;
+    }
+
+    function showSummaries() {
+        if (blockingErrors.length > 0) {
+            blockingList.innerHTML = "";
+            blockingErrors.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                blockingList.appendChild(li);
+            });
+            blockingBox.classList.remove("hidden-block");
+        }
+
+        if (warnings.length > 0) {
+            warningList.innerHTML = "";
+            warnings.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                warningList.appendChild(li);
+            });
+            warningBox.classList.remove("hidden-block");
+        }
+    }
+
+    function finishAnimation() {
+        statusRing.classList.remove("loading-ring");
+        statusRingIcon.textContent = "";
+
+        if (foundCriticalError || verification.ok === false) {
+            statusRing.classList.add("ring-error");
+            statusRingIcon.textContent = "X";
+            analysisTitle.textContent = "Foram encontradas divergências críticas.";
+            finalButton.classList.remove("hidden-block");
+        } else {
+            statusRing.classList.add("ring-success");
+            statusRingIcon.textContent = "✓";
+            analysisTitle.textContent = "Informações verificadas com fonte externa.";
+            resultButton.classList.remove("hidden-block");
+        }
+
+        showSummaries();
+    }
+
+    function runAnimation() {
+        if (index >= checks.length) {
+            finishAnimation();
+            return;
+        }
+
+        const check = checks[index];
+        if (check.status === "error") {
+            foundCriticalError = true;
+        }
+
+        verificationList.appendChild(buildCheckCard(check));
+        index += 1;
+        setTimeout(runAnimation, 700);
+    }
+
+    setTimeout(runAnimation, 700);
+});
+</script>
+{% endblock %}
