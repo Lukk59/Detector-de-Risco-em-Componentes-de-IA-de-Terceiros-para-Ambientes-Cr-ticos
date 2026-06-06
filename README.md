@@ -252,8 +252,6 @@ O projeto foi documentado com foco em:
 
 ## Observação sobre dependências e serviços de terceiros
 
-Este repositório está licenciado em MIT **somente para o código desenvolvido pelo grupo**.
-
 As bibliotecas, frameworks, plataformas e serviços de terceiros utilizados ou consultados pelo projeto, como FastAPI, Pydantic, Jinja2, SQLite, PyPI, Hugging Face Hub e GitHub, possuem **licenças, termos de uso e políticas próprias**. O uso dessas tecnologias deve respeitar a documentação e as condições específicas de cada fornecedor.
 
 ## Autores
