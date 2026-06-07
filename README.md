@@ -1,4 +1,4 @@
-# Detector de Risco em Componentes de IA de Terceiros para Ambientes Críticos
+# Detector de Risco em Componentes de IA de Terceiros para Ambientes Críticos: SafePy - Detector de Risco Version 3.0
 
 Projeto acadêmico desenvolvido para a disciplina **Novas Tecnologias**, com foco em **segurança no uso de componentes de IA de terceiros**.
 
