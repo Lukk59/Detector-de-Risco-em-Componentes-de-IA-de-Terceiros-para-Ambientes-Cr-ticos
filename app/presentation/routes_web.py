@@ -135,7 +135,7 @@ def analisar(
         context["error"] = "Não foi possível analisar. Corrija os campos destacados abaixo."
         context["form_data"] = raw_data
         context["validation_details"] = _friendly_validation_messages(exc)
-        return templates.TemplateResponse(request, "cadastro.html", context, status_code=422)
+        return templates.TemplateResponse(request, "cadastro.html", context)
 
     try:
         outcome = analysis_service.analyze(component)
@@ -160,7 +160,6 @@ def analisar(
                 "can_continue": False,
                 "blocked": True,
             },
-            status_code=422,
         )
 
     return templates.TemplateResponse(
